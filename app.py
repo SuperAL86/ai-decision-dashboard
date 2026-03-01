@@ -43,12 +43,17 @@ if st.button("Run Analysis"):
     X = df[features]
     y = df["target"]
 
-    model = LogisticRegression()
+   latest = df.iloc[-1]
+
+if len(set(y)) < 2:
+    st.warning("Not enough class variation for ML model. Prob set to 0.5.")
+    prob_up = 0.5
+else:
+    model = LogisticRegression(max_iter=1000)
     model.fit(X, y)
 
-    latest = df.iloc[-1]
-    prob_up = model.predict_proba([latest[features]])[0][1]
-
+    latest_features = latest[features].values.reshape(1, -1)
+    prob_up = model.predict_proba(latest_features)[0][1]
     # Drawdown
     df["cum_return"] = (1 + df["ret"]).cumprod()
     df["peak"] = df["cum_return"].cummax()
