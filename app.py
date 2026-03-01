@@ -191,6 +191,56 @@ if st.button("Run Analysis"):
     if risk_flag:
         st.warning("High Drawdown Environment: risk overlay active (size down / be conservative).")
 
+    # -------- Factor Attribution --------
+    st.subheader("Top Contributing Factors")
+    
+    factor_details = []
+
+    # Trend factor
+    trend_score = 1 if latest["ma20"] > latest["ma60"] else 0
+    factor_details.append({
+        "name": "Trend (MA20 vs MA60)",
+        "score": trend_score,
+        "description": "Uptrend confirmed" if trend_score == 1 else "Downtrend"
+    })
+
+    # Sector factor
+    sector_score = 1 if factor_ok else 0
+    factor_details.append({
+        "name": "Sector Confirmation",
+        "score": sector_score,
+        "description": factor_note
+    })
+
+    # ML factor (use probability magnitude)
+    factor_details.append({
+        "name": "ML 5-Day Upside Probability",
+        "score": round(prob_up, 2),
+        "description": f"Predicted probability: {round(prob_up,2)}"
+    })
+
+    # Risk factor (negative contribution)
+    risk_score = -1 if current_dd < -0.15 else 0
+    factor_details.append({
+        "name": "Drawdown Risk",
+        "score": risk_score,
+        "description": f"Current drawdown: {round(current_dd*100,2)}%"
+    })
+
+    # Sort by absolute impact
+    factor_details_sorted = sorted(
+        factor_details,
+        key=lambda x: abs(x["score"]),
+        reverse=True
+    )
+
+    for i, factor in enumerate(factor_details_sorted[:3], start=1):
+        st.markdown(f"""
+    **{i}. {factor['name']}**  
+    Impact Score: {factor['score']}  
+    {factor['description']}
+    """)
+    
     st.caption(factor_note)
 
     st.subheader("Chart")
